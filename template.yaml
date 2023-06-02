@@ -46,7 +46,7 @@ Resources:
                 - '*'
       Environment:
         Variables:
-          MOMENTO_AUTH_TOKEN: "{{resolve:ssm:/momento_auth_token:1}}"
+          MOMENTO_AUTH_TOKEN: "{{resolve:ssm:/momento_auth_token:2}}"
 
   StateMachineSimpleMomentoEtl:
     Type: AWS::Serverless::StateMachine
