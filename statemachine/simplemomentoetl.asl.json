@@ -2,25 +2,25 @@
   "Comment": "A state machine that exports data from a remote database table to a local DynamoDB using Momento Cache as temporary storage",
   "StartAt": "Getting data from remote movie table",
   "States": {
-            "Getting data from remote movie table": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "FunctionName": "${FromDbToCache}",
-                "Payload.$": "$"
-              },
-              "OutputPath": "$.Payload",
-              "Next": "Reading from movie cache and persisting to DynamoDB"
-            },
-            "Reading from movie cache and persisting to DynamoDB": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::lambda:invoke",
-              "Parameters": {
-                "FunctionName": "${FromCacheToDynamoDb}",
-                "Payload.$": "$"
-              },
-              "OutputPath": "$.Payload",
-              "End": true
-            }
-          }
+    "Getting data from remote movie table": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${FromDbToCache}",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "Next": "Reading from movie cache and persisting to DynamoDB"
+    },
+    "Reading from movie cache and persisting to DynamoDB": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${FromCacheToDynamoDb}",
+        "Payload.$": "$"
+      },
+      "OutputPath": "$.Payload",
+      "End": true
+    }
+  }
 }
