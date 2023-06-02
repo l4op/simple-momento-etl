@@ -1,0 +1,13 @@
+
+/* Start Step function */
+{
+  "query": "select * from public.movie order by 1 asc",
+  "table": "movie"
+}
+
+/* Payload passed from  FromDbToCache Lambda to FromCacheToDynamoDb Lambda*/
+{
+  "name": "movie",
+  "rows": 1,
+  "key": "movie_id"
+}

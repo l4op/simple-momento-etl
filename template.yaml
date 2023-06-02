@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Serverless ETL with Momento Cache
+
+Globals:
+  Function:
+    Timeout: 720
+    Runtime: java17
+    Architectures:
+      - arm64
+    MemorySize: 256
+    Environment:
+      Variables:
+        JAVA_TOOL_OPTIONS:  -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+
+Resources:
+
+  FromDbToCache:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: it.loooop.FromDbToCache::handleRequest
+      CodeUri: .
+      Environment:
+        Variables:
+          PG_HOSTNAME: "{{resolve:ssm:/pg_hostname:1}}"
+          PG_DB_NAME: "{{resolve:ssm:/pg_db_name:1}}"
+          PG_USERNAME: "{{resolve:ssm:/pg_username:1}}"
+          PG_PASSWORD: "{{resolve:ssm:/pg_password:1}}"
+          PG_PORT: "{{resolve:ssm:/pg_port:1}}"
+          MOMENTO_AUTH_TOKEN: "{{resolve:ssm:/momento_auth_token:2}}"
+
+  FromCacheToDynamoDb:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: it.loooop.FromCacheToDynamoDb::handleRequest
+      CodeUri: .
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: '*'
+        - Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:CreateTable'
+              Resource:
+                - '*'
+      Environment:
+        Variables:
+          MOMENTO_AUTH_TOKEN: "{{resolve:ssm:/momento_auth_token:1}}"
+
+  StateMachineSimpleMomentoEtl:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/simplemomentoetl.asl.json
+      DefinitionSubstitutions:
+        FromDbToCache: !GetAtt FromDbToCache.Arn
+        FromCacheToDynamoDb: !GetAtt FromCacheToDynamoDb.Arn
+
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FromDbToCache
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FromCacheToDynamoDb
+
+
